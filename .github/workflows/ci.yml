@@ -1,0 +1,73 @@
+name: CI
+
+# Runs on pull requests, and from deploy.yml before every production deploy.
+on:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cawg-viewer
+    steps:
+      # The viewer builds against c2pa-rs in the sibling folder ../c2pa-rs-cawg-viewer,
+      # checked out at the commit pinned in c2pa-rs.ref.
+      - uses: actions/checkout@v4
+        with:
+          path: cawg-viewer
+
+      - id: c2pa
+        run: echo "ref=$(cat c2pa-rs.ref)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          repository: mrappard/c2pa-rs-text-support
+          ref: ${{ steps.c2pa.outputs.ref }}
+          path: c2pa-rs-cawg-viewer
+
+      - name: Install clang and llvm (wasm32 C dependencies)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends clang llvm
+
+      # rust-toolchain.toml pins the toolchain and the wasm32 target.
+      - run: rustup show active-toolchain
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack@0.14.0
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: cawg-viewer
+
+      - name: Rust tests
+        run: cargo test --locked -p viewer-core -p viewer-server
+
+      - name: Clippy
+        run: cargo clippy --locked -p viewer-core -p viewer-server --all-targets -- -D warnings
+
+      - name: Build the WASM module
+        env:
+          CC_wasm32_unknown_unknown: clang
+          AR_wasm32_unknown_unknown: llvm-ar
+        run: scripts/build-wasm.sh
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: cawg-viewer/web/package-lock.json
+
+      - name: Web
+        working-directory: cawg-viewer/web
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+          npm run build:static
+          npm run build:full

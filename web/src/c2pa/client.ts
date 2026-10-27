@@ -44,14 +44,29 @@ export async function verifyFile(
   extraTrust?: DevTrust,
 ): Promise<Report> {
   const bytes = new Uint8Array(await file.arrayBuffer())
-  const bundled = await loadTrust()
+  const opts = buildVerifyOptions(options, await loadTrust(), extraTrust)
+  return getWorker().verify(Comlink.transfer(bytes, [bytes.buffer]), formatOf(file), opts)
+}
+
+/**
+ * Merges request options with the bundled and developer trust settings.
+ *
+ * Unset options are left out rather than sent as `undefined`: the WASM side
+ * (serde-wasm-bindgen) reads `undefined` as a unit value, which it accepts for
+ * optional fields but rejects for lists such as `trustedCawgIssuers`.
+ */
+export function buildVerifyOptions(
+  options: VerifyOptions,
+  bundled: Pick<VerifyOptions, 'trustPem' | 'cawgTrustPem'>,
+  extraTrust?: DevTrust,
+): VerifyOptions {
   const opts: VerifyOptions = {
     ...options,
     trustPem: join(bundled.trustPem, extraTrust?.trustPem),
     cawgTrustPem: join(bundled.cawgTrustPem, extraTrust?.cawgTrustPem),
     trustedCawgIssuers: extraTrust?.trustedCawgIssuers,
   }
-  return getWorker().verify(Comlink.transfer(bytes, [bytes.buffer]), formatOf(file), opts)
+  return Object.fromEntries(Object.entries(opts).filter(([, v]) => v !== undefined)) as VerifyOptions
 }
 
 /** MIME type if the browser knows it, else the extension (c2pa also sniffs content). */

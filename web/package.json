@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@xyflow/react": "^12.10.0",
-    "c2pa-react-cawg-component": "file:../../c2pa-react-cawg-component",
+    "c2pa-react-cawg-component": "^0.1.16",
     "c2pa-react-component": "^0.1.22",
     "c2pa-react-component-types": "^0.1.5",
     "comlink": "^4.4.2",

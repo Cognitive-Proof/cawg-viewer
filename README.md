@@ -55,8 +55,7 @@ web/                  React + Vite; src/c2pa/toOutcome.ts maps the report onto c
 
 ## Prerequisites
 
-- `../c2pa-rs-cawg-viewer`: a checkout of the `cawg-viewer` branch of c2pa-rs (see [c2pa-rs branch](#c2pa-rs-branch); the path is set in `Cargo.toml` under `[workspace.dependencies]`)
-- `../c2pa-react-cawg-component`: a checkout of [c2pa-react-cawg-component](https://github.com/mrappard/c2pa-react-cawg-component), built with `npm run build`. The web app links it as a local dependency for credential display (`createCAWGManifest`), which isn't in a published release yet.
+- `../c2pa-rs-cawg-viewer`: a checkout of the `cawg-viewer` branch of c2pa-rs, at the commit in [`c2pa-rs.ref`](c2pa-rs.ref) (see [c2pa-rs branch](#c2pa-rs-branch); the path is set in `Cargo.toml` under `[workspace.dependencies]`)
 - Rust 1.96 with `wasm32-unknown-unknown` (pinned in `rust-toolchain.toml`) and `wasm-pack`
 - macOS: Homebrew LLVM (`brew install llvm`). c2pa-rs's C dependencies need it for wasm32. The scripts set `CC`/`AR` for you; for plain `cargo` commands, export them yourself:
   `export CC=$(brew --prefix llvm)/bin/clang AR=$(brew --prefix llvm)/bin/llvm-ar`
@@ -112,6 +111,34 @@ The proxy accepts only http(s) URLs. It refuses private, loopback and link-local
 cargo test -p viewer-core -p viewer-server   # fixtures from ../c2pa-rs-cawg-viewer/sdk/tests/fixtures
 npm --prefix web test
 ```
+
+## Deployment
+
+Every push to `main` deploys production to Cloud Run in the `cawg-viewer` GCP project ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)):
+
+1. **CI** ([`ci.yml`](.github/workflows/ci.yml), which also runs on pull requests):
+   - Rust tests and clippy against c2pa-rs at the commit in `c2pa-rs.ref`;
+   - the WASM build;
+   - web typecheck, tests, and both builds.
+2. **Image:** the [`Dockerfile`](Dockerfile) fetches c2pa-rs at that commit and builds the WASM module, `viewer-server` and the full web build. The image is pushed to Artifact Registry.
+3. **Deploy:** `gcloud run deploy cawg-viewer`, public, with up to 3 instances. A `/api/health` smoke test follows.
+
+GitHub authenticates to Google Cloud with Workload Identity Federation, so no keys are stored. The provider only admits this repository. The one-time setup is [`scripts/gcp-setup.sh`](scripts/gcp-setup.sh):
+
+```bash
+scripts/gcp-setup.sh <project-id>
+```
+
+To build and run the image locally:
+
+```bash
+docker build --build-arg C2PA_RS_REF=$(cat c2pa-rs.ref) -t cawg-viewer .
+docker run -p 8080:8080 cawg-viewer
+```
+
+The deployed server signs with the **public c2pa-rs test certificate**, so anything it signs is untrusted outside developer mode. Cloud Run limits request bodies to 32 MB, so larger files can be validated in the browser but not sent to the server for deep verify or signing.
+
+To move to a newer c2pa-rs, update `c2pa-rs.ref` to a commit on the fork's `cawg-viewer` branch.
 
 ## License
 
