@@ -16,6 +16,7 @@
 
 mod proxy;
 mod sign;
+mod static_files;
 
 use std::{net::SocketAddr, path::PathBuf, sync::Arc};
 
@@ -26,7 +27,7 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use tower_http::{cors::CorsLayer, services::ServeDir, trace::TraceLayer};
+use tower_http::{compression::CompressionLayer, cors::CorsLayer, trace::TraceLayer};
 use viewer_core::VerifyOptions;
 
 const MAX_UPLOAD: usize = 512 * 1024 * 1024;
@@ -59,8 +60,9 @@ async fn main() {
         tracing::warn!("SIGN_CERT/SIGN_KEY not set: /api/sign is disabled");
     }
 
-    let app = app(state, &env("CORS_ORIGINS", ""))
-        .fallback_service(ServeDir::new(env("STATIC_DIR", "web/dist/full")));
+    let app = app(state, &env("CORS_ORIGINS", "")).fallback_service(static_files::static_files(
+        env("STATIC_DIR", "web/dist/full"),
+    ));
     let default_bind = std::env::var("PORT")
         .map(|port| format!("0.0.0.0:{port}"))
         .unwrap_or_else(|_| "127.0.0.1:8787".to_owned());
@@ -79,6 +81,8 @@ pub fn app(state: AppState, cors_origins: &str) -> Router {
         .route("/api/verify", post(verify))
         .route("/api/sign", post(sign::sign))
         .layer(DefaultBodyLimit::max(MAX_UPLOAD))
+        // Compresses JSON reports; the default predicate skips images and tiny bodies.
+        .layer(CompressionLayer::new())
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 

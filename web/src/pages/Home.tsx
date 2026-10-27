@@ -2,14 +2,13 @@ import { lazy, Suspense, useCallback, useState } from 'react'
 import { verifyFile } from '../c2pa/client'
 import type { Report } from '../c2pa/types'
 import { DropZone } from '../components/DropZone'
+import { SampleFiles } from '../components/SampleFiles'
 import { Viewer } from '../components/Viewer'
 import { BACKEND_ENABLED, BACKEND_URL } from '../features'
 import { developerTrust } from '../settings'
 
 // Compiled out of the static build: the condition is a build-time constant.
 const BackendTools = BACKEND_ENABLED ? lazy(() => import('../backend/BackendTools')) : null
-// Dev server only; builds replace src/dev/ with a stub (see vite.config.ts).
-const SampleFiles = import.meta.env.DEV ? lazy(() => import('../dev/SampleFiles')) : null
 
 export interface Result {
   file: File
@@ -43,11 +42,7 @@ export function Home() {
     <>
       <DropZone onFile={onFile} busy={busy} />
 
-      {SampleFiles && (
-        <Suspense fallback={null}>
-          <SampleFiles onFile={onFile} />
-        </Suspense>
-      )}
+      <SampleFiles onFile={onFile} />
 
       {!BACKEND_ENABLED && (
         <p className="notice">

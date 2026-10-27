@@ -9,8 +9,8 @@
     "wasm:dev": "../scripts/build-wasm.sh --dev",
     "dev": "vite --mode static",
     "dev:full": "vite --mode full",
-    "build:static": "npm run typecheck && vite build --mode static --outDir dist/static",
-    "build:full": "npm run typecheck && vite build --mode full --outDir dist/full",
+    "build:static": "npm run typecheck && vite build --mode static --outDir dist/static && node scripts/precompress.mjs dist/static",
+    "build:full": "npm run typecheck && vite build --mode full --outDir dist/full && node scripts/precompress.mjs dist/full",
     "preview:static": "vite preview --mode static --outDir dist/static",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json"
