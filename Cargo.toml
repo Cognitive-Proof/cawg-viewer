@@ -1,0 +1,19 @@
+[workspace]
+resolver = "2"
+members = ["crates/viewer-core", "crates/viewer-wasm", "crates/viewer-server"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+# c2pa-rs `cawg-viewer` branch: upstream main plus the open PRs this viewer needs (see README).
+c2pa = { path = "../c2pa-rs-cawg-viewer/sdk", default-features = false, features = ["rust_native_crypto", "fetch_remote_manifests", "http_reqwest", "unstable_cawg_vcb"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+
+[profile.release]
+opt-level = "s"
+lto = true

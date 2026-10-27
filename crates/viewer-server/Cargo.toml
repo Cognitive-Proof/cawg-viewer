@@ -1,0 +1,23 @@
+[package]
+name = "viewer-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+viewer-core = { path = "../viewer-core" }
+# Native only: a blocking HTTP client lets c2pa reach timestamp authorities when signing.
+c2pa = { workspace = true, features = ["http_ureq"] }
+serde.workspace = true
+serde_json.workspace = true
+axum = { version = "0.8", features = ["multipart"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net"] }
+tower-http = { version = "0.6", features = ["cors", "fs", "limit", "trace"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+url = "2"
+bytes = "1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }

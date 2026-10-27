@@ -1,0 +1,10 @@
+/target
+node_modules
+/web/dist
+/web/src/wasm/pkg
+.env.local
+*.pem.key
+*.tsbuildinfo
+# Local, per-developer files
+.claude/
+/drafts/
