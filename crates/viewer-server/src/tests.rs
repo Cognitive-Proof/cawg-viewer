@@ -215,7 +215,7 @@ async fn developer_trusted_cawg_issuer_applies_to_one_request() {
     // The dev VCB sample's credential issuer is untrusted unless the request names it.
     let sample = std::fs::read(concat!(
         env!("CARGO_MANIFEST_DIR"),
-        "/../../web/src/dev/samples/cawg_vcb.jpg"
+        "/../../web/src/samples/cawg_vcb.jpg"
     ))
     .unwrap();
     let issuer = "did:jwk:eyJhbGciOiJFZERTQSIsImt0eSI6Ik9LUCIsImNydiI6IkVkMjU1MTkiLCJ4IjoiSVZMNDBadDVIU1JGTWtMaFh5NnJiTGZQLW50cVh0TUFsNVlPQnBpQjJ4SSJ9";
@@ -245,4 +245,55 @@ async fn developer_trusted_cawg_issuer_applies_to_one_request() {
     )
     .await;
     assert_eq!(codes(&with), ["cawg.vcb.credential_valid"]);
+}
+
+/// A tiny web build: `index.html` plus a fingerprinted asset with a brotli copy.
+fn web_build() -> std::path::PathBuf {
+    let dir = std::env::temp_dir().join(format!("viewer-static-{}", std::process::id()));
+    std::fs::create_dir_all(dir.join("assets")).unwrap();
+    std::fs::write(dir.join("index.html"), "<!doctype html>").unwrap();
+    std::fs::write(dir.join("assets/app-abc123.js"), "console.log(1)").unwrap();
+    std::fs::write(dir.join("assets/app-abc123.js.br"), "brotli bytes").unwrap();
+    dir
+}
+
+async fn get_static(uri: &str, accept_encoding: &str) -> axum::response::Response {
+    static_files::static_files(web_build())
+        .oneshot(
+            Request::get(uri)
+                .header("accept-encoding", accept_encoding)
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap()
+}
+
+#[tokio::test]
+async fn hashed_assets_are_precompressed_and_immutable() {
+    let res = get_static("/assets/app-abc123.js", "gzip, br").await;
+    assert_eq!(res.status(), StatusCode::OK);
+    let h = res.headers();
+    assert_eq!(h["content-encoding"], "br");
+    assert_eq!(h["cache-control"], "public, max-age=31536000, immutable");
+    assert!(h["vary"]
+        .to_str()
+        .unwrap()
+        .to_ascii_lowercase()
+        .contains("accept-encoding"));
+
+    // Without br support the uncompressed file is served.
+    let res = get_static("/assets/app-abc123.js", "identity").await;
+    assert!(res.headers().get("content-encoding").is_none());
+}
+
+#[tokio::test]
+async fn index_is_revalidated() {
+    let res = get_static("/", "br").await;
+    assert_eq!(res.status(), StatusCode::OK);
+    assert_eq!(res.headers()["cache-control"], "no-cache");
+
+    let res = get_static("/missing.js", "br").await;
+    assert_eq!(res.status(), StatusCode::NOT_FOUND);
+    assert!(res.headers().get("cache-control").is_none());
 }

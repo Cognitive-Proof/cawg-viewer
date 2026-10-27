@@ -42,7 +42,7 @@ git -C ../c2pa-rs-cawg-viewer merge --no-ff fork/fix/trust-anchor-kind
 git -C ../c2pa-rs-cawg-viewer merge --no-ff fork/feat/cawg-vcb
 ```
 
-The dev-only "VCB identity" sample (`web/src/dev/samples/cawg_vcb.jpg`) is generated with `cargo run -p viewer-core --example vcb_sample`. Its credential issuer is trusted by default in developer mode (Settings → Trusted CAWG credential issuers).
+The "VCB identity" test file (`web/src/samples/cawg_vcb.jpg`) is generated with `cargo run -p viewer-core --example vcb_sample`. Its credential issuer is trusted by default in developer mode (Settings → Trusted CAWG credential issuers).
 
 ## Layout
 

@@ -7,7 +7,7 @@ const src = resolve(import.meta.dirname, 'src')
 /**
  * Resolves every import of a module under `src/<dir>/` to an empty stub, so that
  * code can't end up in the bundle even if an import slips past its runtime guard.
- * Used for `src/backend/` in the static build and `src/dev/` in every build.
+ * Used for `src/backend/` in the static build.
  */
 function stripDir(dir: string): Plugin {
   const root = resolve(src, dir) + sep
@@ -24,11 +24,11 @@ function stripDir(dir: string): Plugin {
   }
 }
 
-export default defineConfig(({ mode, command }) => {
+export default defineConfig(({ mode }) => {
   const backend = loadEnv(mode, '.').VITE_ENABLE_BACKEND === 'true'
   return {
     // Tests (mode "test") exercise the real backend modules; builds and the static dev server strip them.
-    plugins: [react(), !backend && mode !== 'test' && stripDir('backend'), command === 'build' && stripDir('dev')],
+    plugins: [react(), !backend && mode !== 'test' && stripDir('backend')],
     // Keep a single React even if a linked c2pa-react-cawg-component (e.g. via
     // `npm link` while developing it) brings its own copy, so its hooks work.
     resolve: { dedupe: ['react', 'react-dom'] },
@@ -37,8 +37,6 @@ export default defineConfig(({ mode, command }) => {
     server: {
       // In `dev:full`, forward API calls to a locally running viewer-server.
       proxy: { '/api': 'http://127.0.0.1:8787' },
-      // Dev-only sample buttons load test files straight from the c2pa-rs checkout.
-      fs: { allow: ['.', '../../c2pa-rs-cawg-viewer/sdk/tests/fixtures'] },
     },
   }
 })

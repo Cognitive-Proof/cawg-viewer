@@ -35,7 +35,7 @@ const FIXTURES: &str = concat!(
 );
 const DEFAULT_OUT: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
-    "/../../web/src/dev/samples/cawg_vcb.jpg"
+    "/../../web/src/samples/cawg_vcb.jpg"
 );
 
 /// Fixed so the issuer DID, and the dev-mode default that trusts it, never change.
