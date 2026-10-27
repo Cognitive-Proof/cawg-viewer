@@ -1,0 +1,10 @@
+.git
+target
+web/node_modules
+web/dist
+web/src/wasm/pkg
+web/.vite
+drafts
+.claude
+web/.claude
+*.tsbuildinfo

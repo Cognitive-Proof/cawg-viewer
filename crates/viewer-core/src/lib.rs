@@ -31,12 +31,19 @@ pub struct VerifyOptions {
     /// PEM bundle of CAWG X.509 identity trust anchors.
     pub cawg_trust_pem: Option<String>,
     /// DIDs of trusted CAWG credential issuers (identity claims aggregation and
-    /// verifiable credential binding).
+    /// verifiable credential binding). `null` (or JavaScript `undefined`) means none.
+    #[serde(deserialize_with = "null_as_empty")]
     pub trusted_cawg_issuers: Vec<String>,
     /// Fetch live OCSP responses (needs a CORS-capable path, i.e. the backend).
     pub ocsp_fetch: bool,
     /// Fetch remote manifests referenced by the asset. Defaults to true in c2pa.
     pub remote_manifest_fetch: Option<bool>,
+}
+
+fn null_as_empty<'de, D: serde::Deserializer<'de>>(
+    d: D,
+) -> std::result::Result<Vec<String>, D::Error> {
+    Ok(Option::<Vec<String>>::deserialize(d)?.unwrap_or_default())
 }
 
 /// Builds c2pa [`Settings`] for the given options.

@@ -45,3 +45,14 @@ async fn asset_without_manifest_is_not_an_error() {
     assert_eq!(r.store["validation_state"], "None");
     assert!(r.resources.is_empty());
 }
+
+#[test]
+fn options_accept_null_issuer_list() {
+    let opts: VerifyOptions = serde_json::from_str(r#"{"trustedCawgIssuers": null}"#).unwrap();
+    assert!(opts.trusted_cawg_issuers.is_empty());
+    let opts: VerifyOptions =
+        serde_json::from_str(r#"{"trustedCawgIssuers": ["did:web:a.example"]}"#).unwrap();
+    assert_eq!(opts.trusted_cawg_issuers, ["did:web:a.example"]);
+    let opts: VerifyOptions = serde_json::from_str("{}").unwrap();
+    assert!(opts.trusted_cawg_issuers.is_empty());
+}

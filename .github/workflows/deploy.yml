@@ -1,0 +1,98 @@
+name: Deploy
+
+# Every push to main deploys production on Cloud Run, after CI passes.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Build and deploy
+    needs: ci
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      SERVICE: cawg-viewer
+      IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/cawg-viewer/cawg-viewer
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: c2pa
+        run: echo "ref=$(cat c2pa-rs.ref)" >> "$GITHUB_OUTPUT"
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+          token_format: access_token
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.GCP_REGION }}-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          build-args: C2PA_RS_REF=${{ steps.c2pa.outputs.ref }}
+          tags: |
+            ${{ env.IMAGE }}:${{ github.sha }}
+            ${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - id: deploy
+        name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --project "${{ vars.GCP_PROJECT_ID }}" \
+            --region "${{ vars.GCP_REGION }}" \
+            --image "$IMAGE:${{ github.sha }}" \
+            --service-account "cawg-viewer-run@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com" \
+            --allow-unauthenticated \
+            --port 8080 --memory 1Gi --cpu 1 \
+            --min-instances 0 --max-instances 3 \
+            --concurrency 40 --timeout 60 \
+            --quiet
+          url=$(gcloud run services describe "$SERVICE" --project "${{ vars.GCP_PROJECT_ID }}" \
+            --region "${{ vars.GCP_REGION }}" --format 'value(status.url)')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test
+        run: |
+          health=$(curl -fsS --retry 5 --retry-delay 3 "${{ steps.deploy.outputs.url }}/api/health")
+          echo "$health"
+          echo "$health" | jq -e '.signing == true and (.c2pa | length > 0)' > /dev/null
+          {
+            echo "### Deployed $SERVICE"
+            echo ""
+            echo "- URL: ${{ steps.deploy.outputs.url }}"
+            echo "- Image: \`$IMAGE:${{ github.sha }}\`"
+            echo "- c2pa-rs: \`${{ steps.c2pa.outputs.ref }}\`"
+            echo "- Health: \`$health\`"
+          } >> "$GITHUB_STEP_SUMMARY"

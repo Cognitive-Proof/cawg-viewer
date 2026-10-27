@@ -7,7 +7,7 @@
 //! It also serves the full web build, so one binary runs the whole app.
 //!
 //! Configuration (env):
-//! - `BIND` (default `127.0.0.1:8787`)
+//! - `BIND` (default `0.0.0.0:$PORT` when `PORT` is set, as on Cloud Run, else `127.0.0.1:8787`)
 //! - `STATIC_DIR` (default `web/dist/full`)
 //! - `TRUST_DIR` with `trustlist.pem` / `cawg-anchors.pem` (default `web/public/trust`)
 //! - `SIGN_CERT`, `SIGN_KEY` PEM file paths; `SIGN_ALG` (default `es256`); `SIGN_TSA_URL`
@@ -61,7 +61,10 @@ async fn main() {
 
     let app = app(state, &env("CORS_ORIGINS", ""))
         .fallback_service(ServeDir::new(env("STATIC_DIR", "web/dist/full")));
-    let addr: SocketAddr = env("BIND", "127.0.0.1:8787")
+    let default_bind = std::env::var("PORT")
+        .map(|port| format!("0.0.0.0:{port}"))
+        .unwrap_or_else(|_| "127.0.0.1:8787".to_owned());
+    let addr: SocketAddr = env("BIND", &default_bind)
         .parse()
         .expect("BIND must be host:port");
     tracing::info!("viewer-server listening on http://{addr}");

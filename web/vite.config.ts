@@ -27,9 +27,10 @@ function stripDir(dir: string): Plugin {
 export default defineConfig(({ mode, command }) => {
   const backend = loadEnv(mode, '.').VITE_ENABLE_BACKEND === 'true'
   return {
-    plugins: [react(), !backend && stripDir('backend'), command === 'build' && stripDir('dev')],
-    // c2pa-react-cawg-component may be a local `file:` link with its own node_modules;
-    // keep a single React so its hooks work.
+    // Tests (mode "test") exercise the real backend modules; builds and the static dev server strip them.
+    plugins: [react(), !backend && mode !== 'test' && stripDir('backend'), command === 'build' && stripDir('dev')],
+    // Keep a single React even if a linked c2pa-react-cawg-component (e.g. via
+    // `npm link` while developing it) brings its own copy, so its hooks work.
     resolve: { dedupe: ['react', 'react-dom'] },
     worker: { format: 'es' },
     build: { chunkSizeWarningLimit: 1000 },
