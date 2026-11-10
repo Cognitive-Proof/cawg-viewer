@@ -1,0 +1,183 @@
+{
+  "active_manifest": "urn:c2pa:3f9c71db-92bb-4c0d-a3f1-0dd52f77c2fa",
+  "manifests": {
+    "urn:c2pa:3f9c71db-92bb-4c0d-a3f1-0dd52f77c2fa": {
+      "claim_generator_info": [
+        {
+          "name": "cawg-viewer vcb_sample",
+          "org.contentauth.c2pa_rs": "0.92.0-dev"
+        }
+      ],
+      "title": "CAWG VCB sample",
+      "instance_id": "xmp.iid:c12ed5c0-79c4-4830-88c7-cc76d7502a4c",
+      "assertions": [
+        {
+          "label": "c2pa.actions.v2",
+          "data": {
+            "actions": [
+              {
+                "action": "c2pa.created",
+                "digitalSourceType": "http://cv.iptc.org/newscodes/digitalsourcetype/digitalCapture"
+              }
+            ]
+          },
+          "created": true
+        },
+        {
+          "label": "cawg.identity",
+          "data": {
+            "@context": [
+              "https://www.w3.org/ns/credentials/v2",
+              "https://cawg.io/identity/1.2/vcb/context/"
+            ],
+            "type": [
+              "VerifiableCredential",
+              "C2PABindingCredential",
+              "CAWGVerifiedIdentities"
+            ],
+            "issuer": "did:jwk:eyJhbGciOiJFZERTQSIsImt0eSI6Ik9LUCIsImNydiI6IkVkMjU1MTkiLCJ4IjoiSVZMNDBadDVIU1JGTWtMaFh5NnJiTGZQLW50cVh0TUFsNVlPQnBpQjJ4SSJ9",
+            "validFrom": "2026-01-01T00:00:00Z",
+            "credentialSubject": [
+              {
+                "id": "did:example:sample-creator",
+                "method": "cawg.federated_login",
+                "name": "Sample Creator",
+                "provider": {
+                  "id": "https://social.example",
+                  "name": "Example Social"
+                },
+                "type": "cawg.social_media",
+                "uri": "https://social.example/samplecreator",
+                "username": "samplecreator",
+                "verifiedAt": "2026-01-01T00:00:00Z"
+              },
+              {
+                "id": "did:example:sample-creator",
+                "method": "cawg.dns_record",
+                "provider": {
+                  "name": "Example Domain Verifier"
+                },
+                "type": "cawg.web_site",
+                "uri": "https://samplecreator.example",
+                "verifiedAt": "2026-01-01T00:00:00Z"
+              }
+            ],
+            "verifiedIdentities": [
+              {
+                "type": "cawg.social_media",
+                "name": "Sample Creator",
+                "username": "samplecreator",
+                "uri": "https://social.example/samplecreator",
+                "method": "cawg.federated_login",
+                "verifiedAt": "2026-01-01T00:00:00Z",
+                "provider": {
+                  "id": "https://social.example",
+                  "name": "Example Social"
+                }
+              },
+              {
+                "type": "cawg.web_site",
+                "uri": "https://samplecreator.example",
+                "method": "cawg.dns_record",
+                "verifiedAt": "2026-01-01T00:00:00Z",
+                "provider": {
+                  "name": "Example Domain Verifier"
+                }
+              }
+            ],
+            "signer_payload": {
+              "referenced_assertions": [
+                {
+                  "url": "self#jumbf=c2pa.assertions/c2pa.hash.data",
+                  "hash": "VE5JOMeAJAN0HGjwKLe2I8voJYrK3nyYouT+gFwezrE="
+                }
+              ],
+              "sig_type": "cawg.verifiable_credential_binding"
+            },
+            "termsOfUse": {
+              "referencedAssertions": [
+                {
+                  "hash": "VE5JOMeAJAN0HGjwKLe2I8voJYrK3nyYouT+gFwezrE=",
+                  "url": "self#jumbf=c2pa.assertions/c2pa.hash.data"
+                }
+              ],
+              "type": "C2PAAssetBinding"
+            }
+          }
+        }
+      ],
+      "signature_info": {
+        "alg": "Es256",
+        "issuer": "C2PA Test Signing Cert",
+        "common_name": "C2PA Signer",
+        "cert_serial_number": "640229841392226413189608867977836244731148734950"
+      },
+      "label": "urn:c2pa:3f9c71db-92bb-4c0d-a3f1-0dd52f77c2fa",
+      "claim_version": 2
+    }
+  },
+  "validation_status": [
+    {
+      "code": "signingCredential.untrusted",
+      "url": "self#jumbf=/c2pa/urn:c2pa:3f9c71db-92bb-4c0d-a3f1-0dd52f77c2fa/c2pa.signature",
+      "explanation": "signing certificate untrusted"
+    }
+  ],
+  "validation_results": {
+    "activeManifest": {
+      "success": [
+        {
+          "code": "claimSignature.insideValidity",
+          "url": "self#jumbf=/c2pa/urn:c2pa:3f9c71db-92bb-4c0d-a3f1-0dd52f77c2fa/c2pa.signature",
+          "explanation": "claim signature valid"
+        },
+        {
+          "code": "claimSignature.validated",
+          "url": "self#jumbf=/c2pa/urn:c2pa:3f9c71db-92bb-4c0d-a3f1-0dd52f77c2fa/c2pa.signature",
+          "explanation": "claim signature valid"
+        },
+        {
+          "code": "assertion.hashedURI.match",
+          "url": "self#jumbf=/c2pa/urn:c2pa:3f9c71db-92bb-4c0d-a3f1-0dd52f77c2fa/c2pa.assertions/c2pa.actions.v2",
+          "explanation": "hashed uri matched: self#jumbf=c2pa.assertions/c2pa.actions.v2"
+        },
+        {
+          "code": "assertion.hashedURI.match",
+          "url": "self#jumbf=/c2pa/urn:c2pa:3f9c71db-92bb-4c0d-a3f1-0dd52f77c2fa/c2pa.assertions/c2pa.hash.data",
+          "explanation": "hashed uri matched: self#jumbf=c2pa.assertions/c2pa.hash.data"
+        },
+        {
+          "code": "assertion.hashedURI.match",
+          "url": "self#jumbf=/c2pa/urn:c2pa:3f9c71db-92bb-4c0d-a3f1-0dd52f77c2fa/c2pa.assertions/cawg.identity",
+          "explanation": "hashed uri matched: self#jumbf=c2pa.assertions/cawg.identity"
+        },
+        {
+          "code": "assertion.dataHash.match",
+          "url": "self#jumbf=/c2pa/urn:c2pa:3f9c71db-92bb-4c0d-a3f1-0dd52f77c2fa/c2pa.assertions/c2pa.hash.data",
+          "explanation": "data hash valid"
+        }
+      ],
+      "informational": [
+        {
+          "code": "signingCredential.ocsp.skipped",
+          "url": "self#jumbf=/c2pa/urn:c2pa:3f9c71db-92bb-4c0d-a3f1-0dd52f77c2fa/c2pa.signature",
+          "explanation": "OCSP fetching skipped"
+        },
+        {
+          "code": "cawg.vcb.untrusted_issuer",
+          "url": "self#jumbf=/c2pa/urn:c2pa:3f9c71db-92bb-4c0d-a3f1-0dd52f77c2fa/c2pa.assertions/cawg.identity",
+          "explanation": "Credential issuer is not a trusted issuer"
+        }
+      ],
+      "failure": [
+        {
+          "code": "signingCredential.untrusted",
+          "url": "self#jumbf=/c2pa/urn:c2pa:3f9c71db-92bb-4c0d-a3f1-0dd52f77c2fa/c2pa.signature",
+          "explanation": "signing certificate untrusted"
+        }
+      ]
+    },
+    "specVersion": "2.4.0"
+  },
+  "validation_state": "Valid"
+}

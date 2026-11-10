@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { ManifestStoreReport } from '../c2pa/types'
 import type { CrJson } from '../lib/crjson'
 import type { ManifestSignalsResult, RubricResult, StatementResult } from '../lib/rubrics/types'
 import type { AnyRubricResult, Rubric, RubricIndexEntry } from '../rubrics/run'
@@ -14,7 +15,7 @@ interface Evaluated {
   result: AnyRubricResult | { error: string }
 }
 
-export function RubricsPanel({ crjson }: { crjson: CrJson }) {
+export function RubricsPanel({ crjson, store }: { crjson: CrJson; store: ManifestStoreReport }) {
   const { rubrics: selected } = useSettings()
   const [lib, setLib] = useState<{ run: Run; index: RubricIndexEntry[] } | { error: string }>()
   // Parsed rubrics (or a load error) by filename.
@@ -51,17 +52,18 @@ export function RubricsPanel({ crjson }: { crjson: CrJson }) {
 
   const evaluated = useMemo(() => {
     if (!lib || !('run' in lib)) return []
+    const context = lib.run.rubricContext(crjson, store)
     return chosen.flatMap((entry): Evaluated[] => {
       const rubric = loaded[entry.filename]
       if (rubric === undefined) return []
       if (typeof rubric === 'string') return [{ entry, rubric: { metadata: { name: entry.name }, statements: [] }, result: { error: rubric } }]
       try {
-        return [{ entry, rubric, result: lib.run.evaluate(entry, rubric, crjson) }]
+        return [{ entry, rubric, result: lib.run.evaluate(entry, rubric, context) }]
       } catch (e) {
         return [{ entry, rubric, result: { error: String(e) } }]
       }
     })
-  }, [lib, chosen, loaded, crjson])
+  }, [lib, chosen, loaded, crjson, store])
 
   if (!lib) return <p className="rubrics-note">Loading rubrics…</p>
   if ('error' in lib) return <p className="error">Could not load the rubrics: {lib.error}</p>
@@ -77,7 +79,7 @@ export function RubricsPanel({ crjson }: { crjson: CrJson }) {
         <a href="https://github.com/contentauth/c2pa-conformance-tool" target="_blank" rel="noreferrer">
           c2pa-conformance-tool
         </a>
-        . Informational: they are not part of the C2PA specification.
+        ; the CAWG and W3C credential rubrics are this viewer's own. Informational: they are not part of the C2PA, CAWG or W3C specifications.
       </p>
       <div className="rubric-picker">
         {categories.map((c) => (

@@ -99,7 +99,7 @@ export function Viewer({ report, source, devTrust }: { report: Report; source: s
           )}
           {tab === 'rubrics' && report.crjson && (
             <ErrorBoundary>
-              <RubricsPanel crjson={report.crjson} />
+              <RubricsPanel crjson={report.crjson} store={report.store} />
             </ErrorBoundary>
           )}
           {tab === 'json' && (

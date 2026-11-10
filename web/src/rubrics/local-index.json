@@ -1,0 +1,20 @@
+{
+  "rubrics": [
+    {
+      "id": "cawg-identity",
+      "filename": "cawg-identity.yml",
+      "name": "CAWG Identity",
+      "description": "Structure, hard binding, sig_type and validation-code checks for CAWG identity assertions, plus training-and-data-mining use values.",
+      "mode": "document",
+      "category": "CAWG"
+    },
+    {
+      "id": "w3c-credentials",
+      "filename": "w3c-credentials.yml",
+      "name": "W3C Verifiable Credentials",
+      "description": "VC Data Model 2.0 and CAWG checks on the credentials behind identity claims aggregation and verifiable credential binding identity assertions.",
+      "mode": "document",
+      "category": "W3C Credentials"
+    }
+  ]
+}
