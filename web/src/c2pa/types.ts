@@ -1,6 +1,8 @@
 // Shapes produced by viewer-core (c2pa-rs `Reader::json()` plus thumbnail bytes).
 // Only the fields the viewer reads are typed; everything else passes through.
 
+import type { CrJson } from '../lib/crjson'
+
 export interface ValidationStatus {
   code: string
   url?: string
@@ -55,6 +57,8 @@ export interface Report {
   store: ManifestStoreReport
   /** Thumbnail bytes keyed by `ResourceRef.identifier`. */
   resources: Record<string, { format: string; data: string }>
+  /** The same store as crJSON, for the conformance rubrics; null without C2PA data. */
+  crjson?: CrJson | null
 }
 
 export interface VerifyOptions {

@@ -148,3 +148,29 @@ button.ref.external { padding: 0 6px; margin-right: 6px; }
 .issuer-details { text-align: center; text-decoration: none; }
 /* Five nav items no longer fit on one line on a phone; let them wrap. */
 .navbar ul { flex-wrap: wrap; min-width: 0; }
+
+/* Rubrics tab */
+.rubrics-note { color: var(--muted); font-size: 13px; }
+.rubric-picker { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; margin: 12px 0; }
+.rubric-picker fieldset { border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px 8px; display: flex; flex-direction: column; gap: 4px; }
+.rubric-picker legend { font-size: 12px; color: var(--muted); padding: 0 4px; }
+.rubric-picker label { display: flex; gap: 6px; align-items: center; font-size: 14px; }
+.rubric-picker button { margin-left: auto; align-self: center; }
+.rubric { border: 1px solid var(--border); border-left-width: 4px; border-radius: 8px; padding: 10px 14px; margin: 12px 0; background: var(--panel); }
+.rubric-pass { border-left-color: var(--ok); }
+.rubric-fail { border-left-color: var(--bad); }
+.rubric h3 { margin: 0 0 8px; font-size: 16px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.rubric h3 small { color: var(--muted); font-weight: normal; }
+.rubric .score { margin-left: auto; font-size: 13px; font-weight: normal; color: var(--muted); }
+.rubric ul { list-style: none; padding: 0; margin: 0; }
+.rubric li { margin: 6px 0; overflow-wrap: anywhere; }
+.rubric .outcome { display: inline-block; min-width: 3.2em; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+.rubric li.pass .outcome { color: var(--ok); }
+.rubric li.warn .outcome { color: var(--warn); }
+.rubric li.fail .outcome, .rubric li.error .outcome { color: var(--bad); }
+.rubric .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.rubric details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin-top: 6px; }
+.signals { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+.signals th, .signals td { text-align: left; vertical-align: top; padding: 6px 8px; border-top: 1px solid var(--border); overflow-wrap: anywhere; }
+.signals th { font-size: 12px; color: var(--muted); font-weight: normal; }
+.badge { display: inline-block; font-size: 12px; padding: 1px 8px; margin: 0 4px 4px 0; border-radius: 999px; border: 1px solid var(--border); }

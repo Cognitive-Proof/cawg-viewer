@@ -1,0 +1,61 @@
+{
+  "rubricName": "C2PA Asset Signals Rubric (Local)",
+  "rubricVersion": "1.1",
+  "manifests": [
+    {
+      "assertedBy": {
+        "CN": "Google Media Processing Services",
+        "O": "Google LLC",
+        "OU": "Google System 98649"
+      },
+      "mimeType": null,
+      "localInceptions": [
+        {
+          "trait": "inception:signal_fullyGenAIMedia",
+          "reportText": "Contains Fully GenAI Media",
+          "multiple": false
+        }
+      ],
+      "localTransformations": [
+        {
+          "trait": "transformation:signal_ambiguousActions",
+          "reportText": "Contains ambiguous actions",
+          "multiple": false
+        }
+      ],
+      "allActionsIncluded": false,
+      "additionalSignalsInGathered": false,
+      "ingredients": [
+        {
+          "index": 1,
+          "relationship": "inputTo"
+        }
+      ]
+    },
+    {
+      "assertedBy": {
+        "CN": "Google Media Processing Services",
+        "O": "Google LLC",
+        "OU": "Google System 98649"
+      },
+      "mimeType": null,
+      "localInceptions": [
+        {
+          "trait": "inception:signal_fullyGenAIMedia",
+          "reportText": "Contains Fully GenAI Media",
+          "multiple": false
+        }
+      ],
+      "localTransformations": [
+        {
+          "trait": "transformation:signal_ambiguousActions",
+          "reportText": "Contains ambiguous actions",
+          "multiple": false
+        }
+      ],
+      "allActionsIncluded": false,
+      "additionalSignalsInGathered": false,
+      "ingredients": []
+    }
+  ]
+}

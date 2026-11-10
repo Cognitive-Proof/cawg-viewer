@@ -121,6 +121,10 @@ async fn verify_matches_browser_report_shape() {
     let report = report_of(state(), verify_request(bytes, &[("format", "image/jpeg")])).await;
     assert!(report.store["active_manifest"].is_string());
     assert!(!report.resources.is_empty());
+    // crJSON for the rubrics: active manifest first, with its own validation results.
+    let active = &report.crjson["manifests"][0];
+    assert_eq!(active["label"], report.store["active_manifest"]);
+    assert!(active["validationResults"].is_object());
 }
 
 #[tokio::test]

@@ -110,6 +110,10 @@ pub fn context(opts: &VerifyOptions) -> Result<Context> {
 pub struct Report {
     pub store: Value,
     pub resources: BTreeMap<String, Resource>,
+    /// The same store as crJSON, which conformance rubrics evaluate. `null` when
+    /// there is no C2PA data or the conversion fails; validation never depends on it.
+    #[serde(default)]
+    pub crjson: Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -132,6 +136,7 @@ pub async fn verify(ctx: Context, format: &str, bytes: &[u8]) -> Result<Report> 
             return Ok(Report {
                 store: json!({ "manifests": {}, "validation_state": "None" }),
                 resources: BTreeMap::new(),
+                crjson: Value::Null,
             });
         }
         Err(e) => return Err(e.into()),
@@ -153,7 +158,13 @@ pub async fn verify(ctx: Context, format: &str, bytes: &[u8]) -> Result<Report> 
         })
         .collect();
 
-    Ok(Report { store, resources })
+    let crjson = reader.to_crjson_value().unwrap_or(Value::Null);
+
+    Ok(Report {
+        store,
+        resources,
+        crjson,
+    })
 }
 
 /// Thumbnail `(identifier, format)` pairs referenced by manifests and their ingredients.
