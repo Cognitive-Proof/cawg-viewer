@@ -77,7 +77,7 @@ export function RubricsPanel({ crjson }: { crjson: CrJson }) {
         <a href="https://github.com/contentauth/c2pa-conformance-tool" target="_blank" rel="noreferrer">
           c2pa-conformance-tool
         </a>
-        . Informational: they are not part of the C2PA specification.
+        ; the CAWG rubric is this viewer's own. Informational: they are not part of the C2PA or CAWG specifications.
       </p>
       <div className="rubric-picker">
         {categories.map((c) => (

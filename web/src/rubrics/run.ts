@@ -3,13 +3,20 @@
 // Imported lazily by the Rubrics tab, so json-formula and yaml stay out of the main bundle.
 import type { CrJson } from '../lib/crjson'
 import { evaluateRubric } from '../lib/rubrics/evaluate'
-import { loadRubric, loadRubricIndex } from '../lib/rubrics/loader'
+import { loadRubric, loadRubricIndex as loadUpstreamIndex } from '../lib/rubrics/loader'
 import { evaluatePerManifest } from '../lib/rubrics/perManifest'
 import type { AnyRubricResult, Rubric, RubricIndexEntry } from '../lib/rubrics/types'
+import localIndex from './local-index.json'
 
 export type { AnyRubricResult, Rubric, RubricIndexEntry }
 
-export { loadRubricIndex }
+/** Our own rubrics (YAML in `public/rubrics/`), kept out of the vendored index.json so a re-sync doesn't drop them. */
+export const localRubrics = localIndex.rubrics as RubricIndexEntry[]
+
+/** The upstream index followed by our local rubrics. */
+export async function loadRubricIndex(): Promise<RubricIndexEntry[]> {
+  return [...(await loadUpstreamIndex()), ...localRubrics]
+}
 
 const cache = new Map<string, Promise<Rubric>>()
 

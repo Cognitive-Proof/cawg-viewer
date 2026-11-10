@@ -1,0 +1,265 @@
+rubric_metadata:
+  name: CAWG Identity Assertion Rubric
+  issuer: CAWG Viewer
+  date: '2026-11-09T00:00:00Z'
+  version: '0.1'
+  language: en
+variables:
+  # Hard-binding assertion labels (C2PA 2.x §9.2). A `__N` suffix is stripped
+  # before comparing, so `c2pa.hash.data__1` also counts.
+  $hard_binding_labels:
+  - c2pa.hash.data
+  - c2pa.hash.boxes
+  - c2pa.hash.collection.data
+  - c2pa.hash.bmff
+  - c2pa.hash.bmff.v2
+  - c2pa.hash.bmff.v3
+  # `sig_type` values with a defined validation method.
+  $known_sig_types:
+  - cawg.x509.cose
+  - cawg.identity_claims_aggregation
+  - cawg.verifiable_credential_binding
+  $training_mining_uses:
+  - allowed
+  - notAllowed
+  - constrained
+  # The identity assertion itself can't be parsed or doesn't follow the schema.
+  $cawg_well_formed_error_codes:
+  - cawg.identity.cbor.invalid
+  - cawg.identity.pad.invalid
+  - cawg.identity.sig_type.unknown
+  - cawg.identity.hard_binding_missing
+  - cawg.identity.assertion.duplicate
+  - cawg.ica.invalid_content_type
+  - cawg.ica.invalid_verifiable_credential
+  - cawg.ica.valid_from.missing
+  - cawg.vcb.invalid_content_type
+  - cawg.vcb.invalid_verifiable_credential
+  - cawg.vcb.valid_from.missing
+  - cawg.vcb.verified_identities.missing
+  - cawg.vcb.verified_identities.invalid
+  # The signature or a hash it covers doesn't match.
+  $cawg_valid_error_codes:
+  - cawg.identity.assertion.mismatch
+  - cawg.x509.signature.mismatch
+  - cawg.x509.algorithm.unsupported
+  - cawg.ica.signature_mismatch
+  - cawg.ica.signer_payload.mismatch
+  - cawg.ica.invalid_alg
+  - cawg.ica.time_stamp.invalid
+  - cawg.vcb.signature_mismatch
+  - cawg.vcb.signer_payload.mismatch
+  - cawg.vcb.binding.mismatch
+  - cawg.vcb.invalid_alg
+  - cawg.vcb.time_stamp.invalid
+  # The credential or its issuer isn't trusted, valid now, or resolvable.
+  $cawg_trust_error_codes:
+  - cawg.x509.credential.untrusted
+  - cawg.x509.credential.invalid
+  - cawg.x509.signature.outside_validity
+  - cawg.ica.untrusted_issuer
+  - cawg.ica.invalid_issuer
+  - cawg.ica.did_unavailable
+  - cawg.ica.invalid_did_document
+  - cawg.ica.valid_from.invalid
+  - cawg.ica.valid_until.invalid
+  - cawg.vcb.untrusted_issuer
+  - cawg.vcb.invalid_issuer
+  - cawg.vcb.did_unavailable
+  - cawg.vcb.did_unsupported_method
+  - cawg.vcb.invalid_did_document
+  - cawg.vcb.valid_from.invalid
+  - cawg.vcb.valid_until.invalid
+  - cawg.vcb.revocation.unsupported
+expressions:
+  _baseAssertionLabel: split($args[0], "__")[0]
+  # Last path segment of a hashed-URI, e.g. "self#jumbf=c2pa.assertions/c2pa.hash.data" → "c2pa.hash.data".
+  _urlAssertionLabel: _baseAssertionLabel(split(notNull($args[0], ""), "/")[-1])
+  _assertionEntriesByLabel: entries(manifests[0].assertions || `{}`)[? _baseAssertionLabel(@[0]) == $args[0]]
+  # [label, assertion] pairs for cawg.identity, cawg.identity__1, …
+  _identityEntries: _assertionEntriesByLabel("cawg.identity")
+  # [key, entry] pairs across every cawg.training-mining assertion.
+  _trainingMiningEntries: map(_assertionEntriesByLabel("cawg.training-mining"), &[1])[].entries(notNull(entries, `{}`))[]
+  _cawgFailures: (manifests[0].validationResults.failure || `[]`)[? startsWith(notNull(code, ""), "cawg.")]
+
+---
+
+- id: identity:assertion_present
+  description: Check whether the active manifest carries a CAWG identity assertion
+  specSection: CAWG Identity 1.1/1.2 §5.3
+  warnIfMatched: true
+  expression: |
+    if(length(_identityEntries()) == 0, ["cawg.identity"], [])
+  reportText:
+    'true':
+      en: The active manifest has a CAWG identity assertion
+    'false':
+      en: The active manifest has no CAWG identity assertion
+
+- id: identity:signer_payload_present
+  description: Every identity assertion has a signer_payload map
+  specSection: CAWG Identity 1.1/1.2 §5.1, §5.2
+  failIfMatched: true
+  expression: |
+    map(_identityEntries()[? type(@[1].signer_payload) != "object"], &[0])
+  reportText:
+    'true':
+      en: Every identity assertion has a signer_payload
+    'false':
+      en: 'Identity assertions without a signer_payload: {{matches}}'
+
+- id: identity:sig_type_present
+  description: Every signer_payload names a sig_type
+  specSection: CAWG Identity 1.1/1.2 §5.1, §5.2
+  failIfMatched: true
+  expression: |
+    map(_identityEntries()[? type(@[1].signer_payload.sig_type) != "string" || length(notNull(@[1].signer_payload.sig_type, "")) == 0], &[0])
+  reportText:
+    'true':
+      en: Every identity assertion names a sig_type
+    'false':
+      en: 'Identity assertions without a sig_type: {{matches}}'
+
+- id: identity:sig_type_known
+  description: Every sig_type is one with a defined validation method (cawg.x509.cose, cawg.identity_claims_aggregation, cawg.verifiable_credential_binding)
+  specSection: CAWG Identity 1.1/1.2 §7.1, §8.1, §8.2; Identity 1.3-draft §8.3
+  failIfMatched: true
+  expression: |
+    map(_identityEntries()[? !contains($known_sig_types, notNull(@[1].signer_payload.sig_type, ""))], &[0])
+  reportText:
+    'true':
+      en: Every identity assertion uses a recognized sig_type
+    'false':
+      en: 'Identity assertions with an unrecognized sig_type: {{matches}}'
+
+- id: identity:referenced_assertions_present
+  description: Every signer_payload has a non-empty referenced_assertions list
+  specSection: CAWG Identity 1.1/1.2 §5.1.1, §5.2
+  failIfMatched: true
+  expression: |
+    map(_identityEntries()[? type(@[1].signer_payload.referenced_assertions) != "array" || length(notNull(@[1].signer_payload.referenced_assertions, `[]`)) == 0], &[0])
+  reportText:
+    'true':
+      en: Every identity assertion references at least one assertion
+    'false':
+      en: 'Identity assertions with no referenced_assertions: {{matches}}'
+
+- id: identity:referenced_assertions_hashed_uri
+  description: Every referenced_assertions entry is a hashed-URI with a url and a hash
+  specSection: CAWG Identity 1.1/1.2 §5.2
+  failIfMatched: true
+  expression: |
+    map(_identityEntries()[? length(notNull(@[1].signer_payload.referenced_assertions, `[]`)[? type(url) != "string" || hash == null]) > 0], &[0])
+  reportText:
+    'true':
+      en: Every referenced assertion is a hashed-URI with url and hash
+    'false':
+      en: 'Identity assertions with malformed referenced_assertions entries: {{matches}}'
+
+- id: identity:hard_binding_referenced
+  description: Every signer_payload references the claim's hard-binding assertion (c2pa.hash.data, c2pa.hash.bmff.*, c2pa.hash.boxes, c2pa.hash.collection.data)
+  specSection: CAWG Identity 1.1/1.2 §5.1.1, §6.1, §7.1
+  failIfMatched: true
+  expression: |
+    map(_identityEntries()[? length(notNull(@[1].signer_payload.referenced_assertions, `[]`)[? contains($hard_binding_labels, _urlAssertionLabel(url))]) == 0], &[0])
+  reportText:
+    'true':
+      en: Every identity assertion references a hard-binding assertion
+    'false':
+      en: 'Identity assertions that do not reference a hard-binding assertion: {{matches}}'
+
+- id: identity:signature_present
+  description: Every identity assertion has a signature
+  specSection: CAWG Identity 1.1/1.2 §5.1, §5.2
+  failIfMatched: true
+  expression: |
+    map(_identityEntries()[? @[1].signature == null], &[0])
+  reportText:
+    'true':
+      en: Every identity assertion has a signature
+    'false':
+      en: 'Identity assertions without a signature: {{matches}}'
+
+- id: identity:pad1_present
+  description: Every identity assertion has a pad1 field
+  specSection: CAWG Identity 1.1/1.2 §5.2, §6.2
+  failIfMatched: true
+  expression: |
+    map(_identityEntries()[? @[1].pad1 == null], &[0])
+  reportText:
+    'true':
+      en: Every identity assertion has pad1
+    'false':
+      en: 'Identity assertions without pad1: {{matches}}'
+
+- id: validation:cawg_well_formed_success
+  description: Check for CAWG structural failures (from the well-formed list)
+  specSection: CAWG Identity 1.1/1.2 §7.1, §7.2.2, §8.1; Identity 1.3-draft §8.3.5
+  failIfMatched: true
+  expression: |
+    _cawgFailures()[? contains($cawg_well_formed_error_codes, code)].code
+  reportText:
+    'true':
+      en: No CAWG structural failures found
+    'false':
+      en: 'Found CAWG structural failures: {{matches}}'
+
+- id: validation:cawg_valid_success
+  description: Check for CAWG signature and hash mismatches (from the valid list)
+  specSection: CAWG Identity 1.1/1.2 §7.2.2, §8.1, §8.2; Identity 1.3-draft §8.3.5
+  failIfMatched: true
+  expression: |
+    _cawgFailures()[? contains($cawg_valid_error_codes, code)].code
+  reportText:
+    'true':
+      en: No CAWG signature mismatches found
+    'false':
+      en: 'Found CAWG signature mismatches: {{matches}}'
+
+- id: validation:cawg_trusted_success
+  description: Check for CAWG credential trust failures (from the trusted list)
+  specSection: CAWG Identity 1.1/1.2 §8.1, §8.2; Identity 1.3-draft §8.3.5
+  failIfMatched: true
+  expression: |
+    _cawgFailures()[? contains($cawg_trust_error_codes, code)].code
+  reportText:
+    'true':
+      en: Identity credentials are trusted
+    'false':
+      en: 'Found CAWG trust failures: {{matches}}'
+
+- id: validation:cawg_other_failures
+  description: Check for cawg.* failure codes not covered by the structural, integrity, or trust lists
+  specSection: CAWG Identity 1.1/1.2 §7.2.2
+  failIfMatched: true
+  expression: |
+    _cawgFailures()[? !contains($cawg_well_formed_error_codes, code) && !contains($cawg_valid_error_codes, code) && !contains($cawg_trust_error_codes, code)].code
+  reportText:
+    'true':
+      en: No other CAWG failures found
+    'false':
+      en: 'Found other CAWG failures: {{matches}}'
+
+- id: training_mining:entries_present
+  description: Every cawg.training-mining assertion has a non-empty entries map
+  specSection: CAWG Training and Data Mining 1.1 §3.1, §3.2
+  failIfMatched: true
+  expression: |
+    map(_assertionEntriesByLabel("cawg.training-mining")[? type(@[1].entries) != "object" || length(keys(notNull(@[1].entries, `{}`))) == 0], &[0])
+  reportText:
+    'true':
+      en: Every training-mining assertion has entries
+    'false':
+      en: 'Training-mining assertions without entries: {{matches}}'
+
+- id: training_mining:use_allowed_values
+  description: Every training-mining entry's use is allowed, notAllowed, or constrained
+  specSection: CAWG Training and Data Mining 1.1 §3.1, §3.2
+  failIfMatched: true
+  expression: |
+    map(_trainingMiningEntries()[? !contains($training_mining_uses, notNull(@[1].use, ""))], &[0])
+  reportText:
+    'true':
+      en: Every training-mining entry uses an allowed value
+    'false':
+      en: 'Training-mining entries with an invalid use value: {{matches}}'

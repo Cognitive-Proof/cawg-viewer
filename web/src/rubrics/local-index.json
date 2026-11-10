@@ -1,0 +1,12 @@
+{
+  "rubrics": [
+    {
+      "id": "cawg-identity",
+      "filename": "cawg-identity.yml",
+      "name": "CAWG Identity",
+      "description": "Structure, hard binding, sig_type and validation-code checks for CAWG identity assertions, plus training-and-data-mining use values.",
+      "mode": "document",
+      "category": "CAWG"
+    }
+  ]
+}
