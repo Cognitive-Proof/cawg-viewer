@@ -27,7 +27,7 @@ const defaults: Settings = {
   extraTrustPem: DEFAULT_DEV_TRUST_PEM,
   extraCawgTrustPem: DEFAULT_DEV_TRUST_PEM,
   trustedCawgIssuers: DEFAULT_DEV_CAWG_ISSUERS,
-  rubrics: ['asset-integrity', 'asset-conformance-0.2-spec2.4', 'cawg-identity'],
+  rubrics: ['asset-integrity', 'asset-conformance-0.2-spec2.4', 'cawg-identity', 'w3c-credentials'],
 }
 
 function load(): Settings {
