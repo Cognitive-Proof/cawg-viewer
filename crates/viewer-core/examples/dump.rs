@@ -1,6 +1,7 @@
 //! Prints the viewer report for a file: `cargo run -p viewer-core --example dump -- <path> [mime]`
 //! Set `TRUST_PEM=<file>` / `CAWG_TRUST_PEM=<file>` to validate against trust lists,
-//! `CAWG_ISSUERS=<did>[,<did>...]` to trust CAWG credential issuers, `OCSP=1` to fetch OCSP responses.
+//! `CAWG_ISSUERS=<did>[,<did>...]` to trust CAWG credential issuers, `OCSP=1` to fetch OCSP responses,
+//! `CRJSON=1` to print the crJSON the rubrics evaluate instead of the manifest store.
 use viewer_core::{context, verify, VerifyOptions};
 
 #[tokio::main]
@@ -26,5 +27,10 @@ async fn main() {
     };
     let ctx = context(&opts).expect("context");
     let report = verify(ctx, &format, &bytes).await.expect("verify");
-    println!("{}", serde_json::to_string_pretty(&report.store).unwrap());
+    let out = if std::env::var("CRJSON").is_ok_and(|v| v == "1") {
+        &report.crjson
+    } else {
+        &report.store
+    };
+    println!("{}", serde_json::to_string_pretty(out).unwrap());
 }

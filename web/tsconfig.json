@@ -21,5 +21,9 @@
   },
   "include": [
     "src"
+  ],
+  // Upstream's own tests for the vendored rubric evaluator use Node APIs; Vitest still runs them.
+  "exclude": [
+    "src/lib/rubrics/*.test.ts"
   ]
 }

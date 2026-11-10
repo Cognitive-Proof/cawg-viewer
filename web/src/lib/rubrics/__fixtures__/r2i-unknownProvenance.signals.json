@@ -1,0 +1,46 @@
+{
+  "rubricName": "C2PA Asset Signals Rubric (Local)",
+  "rubricVersion": "1.1",
+  "manifests": [
+    {
+      "assertedBy": {
+        "CN": "Google Media Processing Services",
+        "O": "Google LLC",
+        "OU": "Google System 67154"
+      },
+      "mimeType": null,
+      "localInceptions": [
+        {
+          "trait": "inception:signal_mediaUnknownProvenance",
+          "reportText": "Contains Media of Unknown Provenance",
+          "multiple": false
+        }
+      ],
+      "localTransformations": [
+        {
+          "trait": "transformation:signal_ambiguousActions",
+          "reportText": "Contains ambiguous actions",
+          "multiple": false
+        },
+        {
+          "trait": "transformation:signal_nonEditorial",
+          "reportText": "Contains Non-editorial Transformations",
+          "multiple": false
+        },
+        {
+          "trait": "transformation:signal_perceptibleNonGenAI",
+          "reportText": "Contains Perceptible Non-GenAI Transformations",
+          "multiple": false
+        },
+        {
+          "trait": "transformation:signal_perceptiblePossiblyGenAI",
+          "reportText": "Contains Perceptible Transformations Possibly Using GenAI",
+          "multiple": false
+        }
+      ],
+      "allActionsIncluded": false,
+      "additionalSignalsInGathered": false,
+      "ingredients": []
+    }
+  ]
+}

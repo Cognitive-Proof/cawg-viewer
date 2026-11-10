@@ -6,7 +6,7 @@ import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join, extname } from 'node:path'
 import { brotliCompressSync, constants, gzipSync } from 'node:zlib'
 
-const COMPRESSIBLE = new Set(['.html', '.js', '.mjs', '.css', '.wasm', '.json', '.svg', '.pem', '.txt', '.map'])
+const COMPRESSIBLE = new Set(['.html', '.js', '.mjs', '.css', '.wasm', '.json', '.svg', '.pem', '.yml', '.txt', '.map'])
 const MIN_BYTES = 1024
 
 const dir = process.argv[2]

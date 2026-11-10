@@ -11,6 +11,8 @@ export interface Settings {
   extraCawgTrustPem: string
   /** Trusted CAWG credential issuer DIDs, one per line, used only while developer mode is on. */
   trustedCawgIssuers: string
+  /** IDs (from `public/rubrics/index.json`) of the conformance rubrics the Rubrics tab runs. */
+  rubrics: string[]
 }
 
 /** Both developer anchor lists default to the c2pa-rs test roots, so the sample files work out of the box. */
@@ -25,6 +27,7 @@ const defaults: Settings = {
   extraTrustPem: DEFAULT_DEV_TRUST_PEM,
   extraCawgTrustPem: DEFAULT_DEV_TRUST_PEM,
   trustedCawgIssuers: DEFAULT_DEV_CAWG_ISSUERS,
+  rubrics: ['asset-integrity', 'asset-conformance-0.2-spec2.4'],
 }
 
 function load(): Settings {

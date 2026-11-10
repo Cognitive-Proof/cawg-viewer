@@ -105,6 +105,16 @@ The proxy accepts only http(s) URLs. It refuses private, loopback and link-local
 
 `web/public/trust/trustlist.pem` holds the C2PA signer trust list. It is fetched by the browser and loaded by the server. To check CAWG X.509 identity trust, add `cawg-anchors.pem` next to it, e.g. the Mozilla S/MIME roots and the IPTC anchor list. Never add test CAs whose keys are public: anything signed with them would show as **Trusted**.
 
+## Conformance rubrics
+
+The **Rubrics** tab runs the C2PA Conformance Task Force's YAML rubrics (Integrity, Conformance 0.1/0.2 for Spec 2.2/2.4, Signals) against the file's crJSON, which viewer-core returns as `Report.crjson`. The rubrics (`web/public/rubrics/`) and their evaluator and tests (`web/src/lib/rubrics/`) are copied unmodified from [c2pa-conformance-tool](https://github.com/contentauth/c2pa-conformance-tool) (Apache-2.0). To update them, review the diff after:
+
+```bash
+web/scripts/sync-rubrics.sh <commit>
+```
+
+`web/src/rubrics/viewer.test.ts` runs every rubric on crJSON from our c2pa-rs fork for the bundled samples, so a crJSON difference that breaks a check shows up as a test failure.
+
 ## Test
 
 ```bash
@@ -145,3 +155,5 @@ To move to a newer c2pa-rs, update `c2pa-rs.ref` to a commit on the fork's `cawg
 [MIT](LICENSE) © 2026 Cognitive Proof.
 
 The bundled C2PA trust list (`web/public/trust/trustlist.pem`) and c2pa-rs test root certificates (`web/src/c2pa-rs-test-roots.pem`) are public certificates published by their respective owners.
+
+The conformance rubrics and their evaluator (`web/public/rubrics/`, `web/src/lib/rubrics/`) are from contentauth/c2pa-conformance-tool, licensed under [Apache-2.0](web/src/lib/rubrics/LICENSE).

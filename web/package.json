@@ -16,13 +16,15 @@
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json"
   },
   "dependencies": {
+    "@adobe/json-formula": "^2.1.0",
     "@xyflow/react": "^12.10.0",
     "c2pa-react-cawg-component": "^0.1.16",
     "c2pa-react-component": "^0.1.22",
     "c2pa-react-component-types": "^0.1.5",
     "comlink": "^4.4.2",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "yaml": "^2.9.1"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",

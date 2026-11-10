@@ -5,6 +5,7 @@ import { createCAWGManifest } from 'c2pa-react-cawg-component'
 import { toOutcome } from '../c2pa/toOutcome'
 import type { Report } from '../c2pa/types'
 import { ErrorBoundary } from './ErrorBoundary'
+import { RubricsPanel } from './RubricsPanel'
 import { ValidationList } from './ValidationList'
 import { href } from '../useRoute'
 
@@ -35,7 +36,8 @@ function label(report: Report): string {
 
 export function Viewer({ report, source, devTrust }: { report: Report; source: string; devTrust?: boolean }) {
   const [level, setLevel] = useState<DisclosureLevel>(3)
-  const [tab, setTab] = useState<'manifest' | 'json'>('manifest')
+  const [tab, setTab] = useState<'manifest' | 'rubrics' | 'json'>('manifest')
+  const [rawFormat, setRawFormat] = useState<'store' | 'crjson'>('store')
   const outcome = useMemo(() => toOutcome(report), [report])
 
   const state = report.store.validation_state
@@ -58,6 +60,11 @@ export function Viewer({ report, source, devTrust }: { report: Report; source: s
             <button aria-pressed={tab === 'manifest'} onClick={() => setTab('manifest')}>
               Manifest
             </button>
+            {report.crjson && (
+              <button aria-pressed={tab === 'rubrics'} onClick={() => setTab('rubrics')}>
+                Rubrics
+              </button>
+            )}
             <button aria-pressed={tab === 'json'} onClick={() => setTab('json')}>
               Raw JSON
             </button>
@@ -72,16 +79,33 @@ export function Viewer({ report, source, devTrust }: { report: Report; source: s
                 </select>
               </label>
             )}
+            {tab === 'json' && report.crjson && (
+              <label>
+                Format
+                <select value={rawFormat} onChange={(e) => setRawFormat(e.target.value as 'store' | 'crjson')}>
+                  <option value="store">c2pa-rs JSON</option>
+                  <option value="crjson">crJSON (rubric input)</option>
+                </select>
+              </label>
+            )}
           </nav>
-          {tab === 'manifest' ? (
+          {tab === 'manifest' && (
             <>
               <ErrorBoundary key={level}>
                 <C2paManifest manifest={outcome} plugin={[CAWGPlugin]} level={level} />
               </ErrorBoundary>
               <ValidationList store={report.store} />
             </>
-          ) : (
-            <pre className="json">{JSON.stringify(report.store, null, 2)}</pre>
+          )}
+          {tab === 'rubrics' && report.crjson && (
+            <ErrorBoundary>
+              <RubricsPanel crjson={report.crjson} />
+            </ErrorBoundary>
+          )}
+          {tab === 'json' && (
+            <pre className="json">
+              {JSON.stringify(rawFormat === 'crjson' && report.crjson ? report.crjson : report.store, null, 2)}
+            </pre>
           )}
         </>
       )}

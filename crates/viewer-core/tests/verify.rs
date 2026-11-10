@@ -43,6 +43,7 @@ async fn reads_cawg_identity_assertion() {
 async fn asset_without_manifest_is_not_an_error() {
     let r = report("no_manifest.jpg", "image/jpeg").await;
     assert_eq!(r.store["validation_state"], "None");
+    assert!(r.crjson.is_null());
     assert!(r.resources.is_empty());
 }
 
